@@ -6,7 +6,11 @@ import { sanitizeText } from '@/lib/sanitize'
 
 const personSchema = z.object({
   name: z.string().min(1).max(200),
+  arabicName: z.string().max(200).optional().nullable(),
+  translit: z.string().max(200).optional().nullable(),
+  era: z.string().max(100).optional().nullable(),
   description: z.string().min(1).max(10000),
+  works: z.string().max(10000).optional().nullable(),
   role: z.string().max(200).optional(),
   image: z.string().max(500).optional().nullable(),
 })
@@ -30,12 +34,16 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const parsed = personSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 })
 
-  const { name, description, role, image } = parsed.data
+  const { name, arabicName, translit, era, description, works, role, image } = parsed.data
   const person = await prisma.person.update({
     where: { id: params.id },
     data: {
       name: sanitizeText(name, 200),
+      arabicName: arabicName ? sanitizeText(arabicName, 200) : null,
+      translit: translit ? sanitizeText(translit, 200) : null,
+      era: era ? sanitizeText(era, 100) : null,
       description: sanitizeText(description, 10000),
+      works: works ? sanitizeText(works, 10000) : null,
       role: role ? sanitizeText(role, 200) : null,
       image: image ?? null,
     },

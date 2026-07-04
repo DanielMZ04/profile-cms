@@ -8,6 +8,7 @@ const navItems = [
   { label: 'Dashboard', href: '/admin' },
   { label: 'Gelehrte', href: '/admin/persons' },
   { label: 'Fatwas', href: '/admin/posts' },
+  { label: 'Kategorien', href: '/admin/categories' },
 ]
 
 export default function AdminSidebar() {

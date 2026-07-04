@@ -3,22 +3,35 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import ImageUpload from './ImageUpload'
+import AudioUpload from './AudioUpload'
+import { CATEGORIES } from '@/lib/categories'
 
 interface InitialData {
   id?: string
   title?: string
   content?: string
   image?: string | null
+  audio?: string | null
+  category?: string | null
+  personId?: string | null
   published?: boolean
 }
 
-export default function PostForm({ initialData }: { initialData?: InitialData }) {
+interface PersonOption {
+  id: string
+  name: string
+}
+
+export default function PostForm({ initialData, persons = [] }: { initialData?: InitialData; persons?: PersonOption[] }) {
   const router = useRouter()
   const isEdit = !!initialData?.id
 
   const [title, setTitle] = useState(initialData?.title ?? '')
   const [content, setContent] = useState(initialData?.content ?? '')
   const [image, setImage] = useState(initialData?.image ?? '')
+  const [audio, setAudio] = useState(initialData?.audio ?? '')
+  const [category, setCategory] = useState(initialData?.category ?? '')
+  const [personId, setPersonId] = useState(initialData?.personId ?? '')
   const [published, setPublished] = useState(initialData?.published ?? true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -34,7 +47,7 @@ export default function PostForm({ initialData }: { initialData?: InitialData })
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, content, image: image || null, published }),
+      body: JSON.stringify({ title, content, image: image || null, audio: audio || null, category: category || null, personId: personId || null, published }),
     })
 
     setSaving(false)
@@ -78,6 +91,51 @@ export default function PostForm({ initialData }: { initialData?: InitialData })
           maxLength={100000}
           placeholder="Beitragstext…"
         />
+      </div>
+
+      <div>
+        <label className="label">Gelehrter</label>
+        <select
+          className="input"
+          value={personId}
+          onChange={e => setPersonId(e.target.value)}
+        >
+          <option value="">– kein Gelehrter –</option>
+          {persons.map(p => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-gray-400">Gelehrte werden unter „Gelehrte" angelegt.</p>
+      </div>
+
+      <div>
+        <label className="label">Kategorie</label>
+        <select
+          className="input"
+          value={category}
+          onChange={e => setCategory(e.target.value)}
+        >
+          <option value="">– keine Kategorie –</option>
+          {CATEGORIES.map(c => (
+            <option key={c.id} value={c.id}>{c.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="label">Audio (z. B. Fatwa-Aufnahme)</label>
+        <AudioUpload current={audio || null} onUploaded={url => setAudio(url)} />
+        <div className="mt-3">
+          <label className="label text-xs text-gray-500">…oder Audio-URL einfügen (z. B. von der Quellseite)</label>
+          <input
+            type="url"
+            className="input"
+            value={audio.startsWith('http') ? audio : ''}
+            onChange={e => setAudio(e.target.value)}
+            maxLength={500}
+            placeholder="https://…/fatwa-123.mp3"
+          />
+        </div>
       </div>
 
       <div className="flex items-center gap-3">

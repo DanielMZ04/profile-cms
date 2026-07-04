@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model AdminUser {
@@ -17,9 +18,14 @@ model AdminUser {
 model Person {
   id          String   @id @default(cuid())
   name        String
+  arabicName  String?
+  translit    String?
+  era         String?
   image       String?
   description String
+  works       String? // one work per line: "Titel | arabischer Titel | Beschreibung"
   role        String?
+  posts       Post[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -29,7 +35,19 @@ model Post {
   title     String
   content   String
   image     String?
+  audio     String? // URL zur Audio-Datei (MP3/M4A/OGG/WAV)
+  category  String? // Kategorie-ID, siehe src/lib/categories.ts
+  person    Person?  @relation(fields: [personId], references: [id], onDelete: SetNull)
+  personId  String? // Gelehrter, der die Fatwa gegeben hat
   published Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model TafseerAsadi {
+  verseKey String  @id @map("verse_key") // z. B. "2:255"
+  textAr   String  @map("text_ar")
+  textDe   String? @map("text_de") // deutsche Übersetzung, schrittweise ergänzt
+
+  @@map("tafseer_asadi")
 }

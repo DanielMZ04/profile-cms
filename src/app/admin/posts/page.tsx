@@ -1,11 +1,13 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import DeleteButton from '@/components/DeleteButton'
+import { categoryLabel } from '@/lib/categories'
 
 export const revalidate = 0
 
 export default async function AdminPostsPage() {
   const posts = await prisma.post.findMany({ orderBy: { createdAt: 'desc' } })
+  const uncategorized = posts.filter(p => !p.category).length
 
   return (
     <div>
@@ -13,6 +15,12 @@ export default async function AdminPostsPage() {
         <h1 className="text-2xl font-bold text-gray-900">Fatwas</h1>
         <Link href="/admin/posts/new" className="btn-primary">+ Neue Fatwa</Link>
       </div>
+
+      {uncategorized > 0 && (
+        <p className="mb-4 text-sm text-amber-600">
+          {uncategorized} Fatwa{uncategorized === 1 ? '' : 's'} ohne Kategorie – Zuweisung unter „Kategorien".
+        </p>
+      )}
 
       {posts.length === 0 ? (
         <div className="card p-12 text-center text-gray-400">Noch keine Fatwas angelegt.</div>
@@ -27,6 +35,7 @@ export default async function AdminPostsPage() {
                   <span className={post.published ? 'text-green-600' : 'text-amber-600'}>
                     {post.published ? 'Veröffentlicht' : 'Entwurf'}
                   </span>
+                  {post.category && <> · {categoryLabel(post.category)}</>}
                 </p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
